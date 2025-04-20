@@ -1,0 +1,4 @@
+name: VerDungeonAddon
+version: '1.0-SNAPSHOT'
+main: com.ycjhub.verDungeonAddon.VerDungeonAddon
+api-version: '1.21'
