@@ -1,17 +1,13 @@
 package com.ycjhub.verDungeonAddon;
 
-import io.lumine.mythic.api.mobs.MythicMob;
+import com.ycjhub.verDungeonAddon.Triggers.TestLayout;
+import net.playavalon.mythicdungeons.MythicDungeons;
 import net.playavalon.mythicdungeons.api.MythicDungeonsService;
-import net.playavalon.mythicdungeons.api.events.dungeon.DungeonDisposeEvent;
 import net.playavalon.mythicdungeons.api.events.dungeon.DungeonEndEvent;
 import net.playavalon.mythicdungeons.api.events.dungeon.DungeonStartEvent;
-import net.playavalon.mythicdungeons.api.generation.rooms.DungeonRoomContainer;
+import net.playavalon.mythicdungeons.api.generation.layout.LayoutBranching;
 import net.playavalon.mythicdungeons.api.generation.rooms.InstanceRoom;
-import net.playavalon.mythicdungeons.api.parents.elements.DungeonFunction;
-import net.playavalon.mythicdungeons.dungeons.dungeontypes.DungeonProcedural;
-import net.playavalon.mythicdungeons.dungeons.functions.FunctionSpawnMythicMob;
 import net.playavalon.mythicdungeons.dungeons.instancetypes.play.InstanceProcedural;
-import net.playavalon.mythicdungeons.player.MythicPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,22 +20,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.awt.*;
-import java.sql.Statement;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public final class VerDungeonAddon extends JavaPlugin implements Listener {
     private static final HashMap<Player, List<InstanceRoom>> sortRoomsAche = new HashMap<>();
     private static final WeakHashMap<Player, Integer> currentRoom = new WeakHashMap<>();
-    private static final WeakHashMap<Player, Boolean> shouldOpen = new WeakHashMap<>();
-    private static final List<Player> haveNotPicked = new ArrayList<>();
     private final Set<UUID> forceUpgrade = new HashSet<>();
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
+        MythicDungeons.inst().registerLayout(TestLayout.class, "test", "testlayout");
     }
 
     @Override
@@ -54,43 +46,41 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         e.getPlayers().forEach(player -> {
             sortRoomsAche.remove(player);
             currentRoom.remove(player);
-            shouldOpen.remove(player);
+            forceUpgrade.remove(player.getUniqueId());
         });
     }
     @EventHandler
-    public void onDungeonEnd(DungeonStartEvent e) {
+    public void onDungeonStart(DungeonStartEvent e) {
         e.getPlayers().forEach(player -> {
             sortRoomsAche.remove(player);
             currentRoom.remove(player);
-            shouldOpen.remove(player);
+            forceUpgrade.remove(player.getUniqueId());
         });
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        if (!p.isOp()) {
-            return;
-        }
-        int rn = getCurrentRoom(p);
-        if (rn == -1) {
-            return;
-        } else if (rn == 0) {
-            if (shouldOpen.get(p)!= null && shouldOpen.get(p)) {
-                openMenu(p);
-            } else {
-                shouldOpen.put(p, true);
-            }
-        } else {
-            if (currentRoom.containsKey(p)) {
-                if (currentRoom.get(p) < rn) {
-                    p.sendTitle("關卡 1-" + rn, "開始挑戰！");
-                    currentRoom.put(p, rn);
-                }
-            } else {
-                currentRoom.put(p, rn);
-            }
+        if (!p.isOp()) return;
 
+        int rn = getCurrentRoom(p);
+        if (rn == -1) return;
+        e.getPlayer().sendMessage(rn + "!");
+        currentRoom.putIfAbsent(p, rn);
+
+        if (rn == 0) { // at connector
+            if (!forceUpgrade.contains(p.getUniqueId())) {
+                forceUpgrade.add(p.getUniqueId());
+                //currentRoom.put(p, 0); // 同步設為0
+                openMenu(p);
+            }
+        } else if (rn > 0) {
+            if (currentRoom.get(p) < rn) {
+                p.sendMessage(rn + ":" + currentRoom.get(p));
+                p.sendTitle("關卡 1-" + rn, "開始挑戰！");
+                currentRoom.put(p, rn);
+                p.sendMessage(rn + ":" + currentRoom.get(p));
+            }
         }
     }
 
@@ -114,9 +104,10 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
     }
 
     public int getCurrentRoom(Player p) {
-        //0 = in connector, -1 = not in dungeon else = room number
+        //0 = in connector, -1 = not in procedural dungeon else = room number
         //p.sendMessage("You're moving!"); //debug message
         if (mythicDungeonsAPI().isPlayerInDungeon(p)) {
+            if (mythicDungeonsAPI().getDungeonInstance(p).getDungeon().asProcedural() == null) return -1;
             List<InstanceRoom> sortedRooms;
             if (sortRoomsAche.containsKey(p)) {
                 sortedRooms = sortRoomsAche.get(p);
@@ -213,10 +204,18 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         if (chosen) {
             forceUpgrade.remove(p.getUniqueId());
             p.closeInventory();
-            Location targetLoc = sortRoomsAche.get(p).get(currentRoom.get(p)+1).getSpawn();
-            targetLoc.setWorld(p.getWorld());
-            p.teleport(targetLoc);
-
+            List<InstanceRoom> list = sortRoomsAche.get(p);
+            Integer idx = currentRoom.get(p);
+            if (list != null && idx != null && idx < list.size()) {
+                Location targetLoc = list.get(idx).getSpawn().clone();
+                targetLoc.add(0, 1, 0);
+                targetLoc.setWorld(p.getWorld());
+                p.teleport(targetLoc);
+                //currentRoom.put(p, idx+1); // 更新房間快取
+            } else {
+                p.performCommand("leave");
+                p.sendTitle("恭喜完成第一章", "快去挑戰下一章", 10, 10, 10);
+            }
         }
     }
     @EventHandler
