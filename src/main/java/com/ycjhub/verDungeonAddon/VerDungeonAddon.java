@@ -74,7 +74,6 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
 
         int rn = getCurrentRoom(p);
         if (rn == -1) return;
-        e.getPlayer().sendMessage(rn + "!");
         currentRoom.putIfAbsent(p, rn);
 
         if (rn == 0) { // at connector
