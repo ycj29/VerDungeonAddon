@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -27,11 +28,19 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
     private static final HashMap<Player, List<InstanceRoom>> sortRoomsAche = new HashMap<>();
     private static final WeakHashMap<Player, Integer> currentRoom = new WeakHashMap<>();
     private final Set<UUID> forceUpgrade = new HashSet<>();
+    public static List<String> s = new ArrayList<>();
 
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         MythicDungeons.inst().registerLayout(TestLayout.class, "test", "testlayout");
+    }
+    @EventHandler
+    public void onWorldLoad(PlayerChatEvent e) {
+        if (e.getPlayer().isOp()) {
+            System.out.println(s.toString());
+            e.getPlayer().sendMessage(s.toString());
+        }
     }
 
     @Override
