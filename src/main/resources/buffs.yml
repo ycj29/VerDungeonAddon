@@ -1,0 +1,152 @@
+buff1:
+  display: DIAMOND_SWORD
+  name: 傷害增幅
+  stats: attack_damage
+  tier: 1
+  rarity: "&7普通"
+  value: 5.0
+  lore:
+    - "增加攻擊力"
+    - "很厲害的 buff！"
+
+buff2:
+  display: GOLDEN_APPLE
+  name: 金蘋果祝福
+  stats: max_health
+  tier: 2
+  rarity: "&9稀有"
+  value: 10.0
+  lore:
+    - "增加最大生命值"
+
+buff3:
+  display: FEATHER
+  name: 輕盈步伐
+  stats: movement_speed
+  tier: 1
+  rarity: "&7普通"
+  value: 0.02
+  lore:
+    - "移動速度 +2%"
+
+buff4:
+  display: RABBIT_FOOT
+  name: 幸運兔腳
+  stats: luck
+  tier: 2
+  rarity: "&9稀有"
+  value: 15.0
+  lore:
+    - "幸運值 +15"
+    - "增加稀有掉落機率"
+
+buff5:
+  display: SHIELD
+  name: 堅不可摧
+  stats: knockback_resistance
+  tier: 2
+  rarity: "&5史詩"
+  value: 0.1
+  lore:
+    - "擊退抗性 +10%"
+
+buff6:
+  display: ENDER_PEARL
+  name: 傳送能量
+  stats: max_stellium
+  tier: 2
+  rarity: "&9稀有"
+  value: 30.0
+  lore:
+    - "Stellium 上限 +30"
+
+buff7:
+  display: BLAZE_POWDER
+  name: 技能燃燒
+  stats: skill_damage
+  tier: 3
+  rarity: "&5史詩"
+  value: 20.0
+  lore:
+    - "技能傷害 +20%"
+
+buff8:
+  display: DIAMOND_CHESTPLATE
+  name: 龍之護甲
+  stats: armor_toughness
+  tier: 3
+  rarity: "&6傳說"
+  value: 4.0
+  lore:
+    - "護甲韌性 +4"
+
+buff9:
+  display: HEART_OF_THE_SEA
+  name: 海洋之心
+  stats: oxygen_bonus
+  tier: 2
+  rarity: "&9稀有"
+  value: 0.33
+  lore:
+    - "水下呼吸消耗機率 -33%"
+
+buff10:
+  display: NETHER_STAR
+  name: 星界再生力
+  stats: health_regeneration
+  tier: 3
+  rarity: "&6傳說"
+  value: 10.0
+  lore:
+    - "生命回復 +10/秒"
+    - "恢復能力大幅提升"
+
+buff11:
+  display: ENCHANTED_BOOK
+  name: 冷卻縮減秘典
+  stats: cooldown_reduction
+  tier: 2
+  rarity: "&5史詩"
+  value: 10.0
+  lore:
+    - "技能冷卻縮減 +10%"
+
+buff12:
+  display: IRON_BOOTS
+  name: 高跳躍裝備
+  stats: jump_strength
+  tier: 1
+  rarity: "&7普通"
+  value: 0.2
+  lore:
+    - "跳躍高度 +20%"
+
+buff13:
+  display: TOTEM_OF_UNDYING
+  name: 不死圖騰祝福
+  stats: undead_damage
+  tier: 3
+  rarity: "&6傳說"
+  value: 30.0
+  lore:
+    - "對不死生物傷害 +30%"
+
+buff14:
+  display: BOW
+  name: 神射手訓練
+  stats: projectile_damage
+  tier: 2
+  rarity: "&9稀有"
+  value: 15.0
+  lore:
+    - "投射物傷害 +15%"
+
+buff15:
+  display: HONEY_BOTTLE
+  name: 安全落地訓練
+  stats: safe_fall_distance
+  tier: 1
+  rarity: "&7普通"
+  value: 5.0
+  lore:
+    - "無傷墜落高度 +5 格"
