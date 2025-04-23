@@ -67,9 +67,9 @@ public class TestLayout extends LayoutBranching {
                         .findFirst()
                         .orElse(null);
                 if (matching != null) {
-                    System.out.println(ir.getAvailableConnectors().size() + " BEFORE");
+                    //System.out.println(ir.getAvailableConnectors().size() + " BEFORE");
                     ir.getUsedConnectors().add(matching);
-                    System.out.println(ir.getAvailableConnectors().size() + " AFTER");
+                    //System.out.println(ir.getAvailableConnectors().size() + " AFTER");
                 }
 
                 //RotatedRoom picked = first.getRandomOrientation();

@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class BuffOption {
 
     public void Apply(Player pl) {
         MMOPlayerData playerData = MMOPlayerData.get(pl);
-        pl.sendMessage("Before: " + stat + playerData.getStatMap().getStat(stat));
+        //pl.sendMessage("Before: " + stat + playerData.getStatMap().getStat(stat));
 
         StatModifier sm = new StatModifier("VerDunAddon", stat, value, ModifierType.FLAT, EquipmentSlot.OTHER, ModifierSource.OTHER);
         sm.register(playerData);
@@ -115,6 +116,6 @@ public class BuffOption {
     }
     @Override
     public String toString() {
-        return name + stat + rarity + lore.toString();
+        return name + stat + rarity + Arrays.toString(lore);
     }
 }

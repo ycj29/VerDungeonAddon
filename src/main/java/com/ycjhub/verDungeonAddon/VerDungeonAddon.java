@@ -1,8 +1,13 @@
 package com.ycjhub.verDungeonAddon;
 
 import com.ycjhub.verDungeonAddon.Triggers.TestLayout;
+import io.lumine.mythic.api.mobs.entities.SpawnReason;
+import io.lumine.mythic.bukkit.events.MythicMobPreSpawnEvent;
+import io.lumine.mythic.bukkit.events.MythicMobSpawnEvent;
 import net.playavalon.mythicdungeons.MythicDungeons;
 import net.playavalon.mythicdungeons.api.MythicDungeonsService;
+import net.playavalon.mythicdungeons.api.events.dungeon.DungeonDisposeEvent;
+import net.playavalon.mythicdungeons.api.events.dungeon.DungeonEndEvent;
 import net.playavalon.mythicdungeons.api.events.dungeon.DungeonStartEvent;
 import net.playavalon.mythicdungeons.api.generation.rooms.InstanceRoom;
 import net.playavalon.mythicdungeons.dungeons.instancetypes.play.InstanceProcedural;
@@ -11,7 +16,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -23,24 +30,18 @@ import java.util.List;
 public final class VerDungeonAddon extends JavaPlugin implements Listener {
     static final HashMap<Player, List<InstanceRoom>> sortRoomsAche = new HashMap<>();
     static final WeakHashMap<Player, Integer> currentRoom = new WeakHashMap<>();
-    public final Set<UUID> forceUpgrade = new HashSet<>();
-    public final Set<UUID> lastRoom = new HashSet<>();
-    public static List<String> s = new ArrayList<>();
+    static final WeakHashMap<UUID, BuffMenu> currentMenu = new WeakHashMap<>();
     private static VerDungeonAddon instance;
+    static ArrayList<BuffOption> result = new ArrayList<>();
 
     @Override
     public void onEnable() {
         instance = this;
         getAllBuffOptions();
-        Bukkit.getPluginManager().registerEvents(new BuffMenu(), this);
+        Bukkit.getPluginManager().registerEvents(new BuffMenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(this, this);
+        //MythicDungeons.inst().registerFunctions("com.ycjhub.verDungeonAddon.FunctionRoguelikeSpawnMythicMob");
         MythicDungeons.inst().registerLayout(TestLayout.class, "test", "testlayout");
-    }
-    @EventHandler
-    public void onPlayerChat(PlayerChatEvent e) {
-        if (e.getPlayer().isOp()) {
-            new BuffMenu().open(e.getPlayer());
-        }
     }
 
     @Override
@@ -51,16 +52,55 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         return Bukkit.getServer().getServicesManager().load(MythicDungeonsService.class);
     }
     @EventHandler
-    public void onDungeonStart(DungeonStartEvent e) {
-        e.getPlayers().forEach(player -> {
-            BuffOption.destroy(player);
-            sortRoomsAche.remove(player);
-            currentRoom.remove(player);
-            forceUpgrade.remove(player.getUniqueId());
-            lastRoom.remove(player.getUniqueId());
-            new BuffMenu().open(player);
-        });
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        e.getPlayer().performCommand("spawn");
+        e.getPlayer().setGameMode(GameMode.SURVIVAL);
     }
+
+    @EventHandler
+    public void onDungeonStart(DungeonStartEvent e) {
+        Bukkit.getScheduler().runTaskLater(VerDungeonAddon.getInstance(), () -> {
+            e.getPlayers().forEach(player -> {
+                BuffOption.destroy(player);
+                sortRoomsAche.remove(player);
+                currentRoom.remove(player);
+                BuffMenu bm = new BuffMenu(player);
+                currentMenu.put(player.getUniqueId(), bm);
+                //System.out.println("ADDED" + player.name());
+                //bm.open();
+            });
+        }, 5L);
+    }
+
+    @EventHandler
+    public void onMMobSpawn(MythicMobSpawnEvent e) {
+        //e.getLocation().distance();
+        if (e.getSpawnReason().equals(SpawnReason.OTHER)) {
+            Player p = e.getLocation().getWorld().getPlayers().getFirst();
+            if (p == null) {
+                System.out.println("OHNOOOOO");
+                return;
+            }
+            int room = getCurrentRoom(p);
+            if (room == -1) {
+                System.out.println("OH HELLLL NOOOOO");
+                return;
+            }
+            e.setMobLevel(e.getMobLevel() * room);
+            System.out.println("OH HELLLL YESSSS" + e.getMobLevel() + " :" + room);
+        }
+        System.out.println(e.getSpawnReason().name());
+    }
+    @EventHandler
+    public void onPlayerHeal(EntityRegainHealthEvent e) {
+        if (e.getEntity() instanceof Player) {
+            Player p = (Player) e.getEntity();
+            if (getCurrentRoom(p) > 0)
+                System.out.printf("CANCEL HEALING %s\n", p.getName());
+                e.setCancelled(true);
+        }
+    }
+
 
 
 
@@ -118,7 +158,9 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         return instance;
     }
     public List<BuffOption> getAllBuffOptions() {
-        List<BuffOption> result = new ArrayList<>();
+        if (!result.isEmpty()) {
+            return result;
+        }
         File file = new File(getDataFolder(), "buffs.yml");
         if (!file.exists()) {
             saveResource("buffs.yml", false);
@@ -135,9 +177,9 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
             ItemStack itemStack = new ItemStack(material);
             String name = config.getString(key + ".name", "未知BUFF");
             String stats = config.getString(key + ".stats", "");
-            Integer tier = config.getInt(key + ".tier", 1);
+            int tier = config.getInt(key + ".tier", 1);
             String rarity = config.getString(key + ".rarity", "common");
-            Double value = config.getDouble(key + ".value", 0.0);
+            double value = config.getDouble(key + ".value", 0.0);
             List<String> loreList = config.getStringList(key + ".lore");
             String[] lore = loreList.toArray(new String[0]);
             result.add(new BuffOption(itemStack, name, stats, rarity, value, tier, lore));
@@ -146,6 +188,9 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
             System.out.println("Loaded " + s.toString());
         });
         return result;
+    }
+    public BuffMenu getCurrentMenu(Player p) {
+        return currentMenu.get(p.getUniqueId());
     }
 
 }
