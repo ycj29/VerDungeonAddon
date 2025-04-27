@@ -28,7 +28,7 @@ public class BuffMenu implements Listener {
     }
 
     protected void refresh() {
-        List<BuffOption> all = new ArrayList<>(VerDungeonAddon.getInstance().getAllBuffOptions());
+        List<BuffOption> all = new ArrayList<>(VerDungeonAddon.getInstance().getAllBuffOptions(pl));
         if (all.size() < 3) {
             throw new IllegalStateException("Buff options 少於三個，無法隨機選三個不重複的！");
         }

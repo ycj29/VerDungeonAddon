@@ -37,7 +37,6 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        getAllBuffOptions();
         Bukkit.getPluginManager().registerEvents(new BuffMenuListener(this), this);
         Bukkit.getPluginManager().registerEvents(this, this);
         //MythicDungeons.inst().registerFunctions("com.ycjhub.verDungeonAddon.FunctionRoguelikeSpawnMythicMob");
@@ -78,26 +77,27 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         if (e.getSpawnReason().equals(SpawnReason.OTHER)) {
             Player p = e.getLocation().getWorld().getPlayers().getFirst();
             if (p == null) {
-                System.out.println("OHNOOOOO");
+                //System.out.println("OHNOOOOO");
                 return;
             }
             int room = getCurrentRoom(p);
-            if (room == -1) {
-                System.out.println("OH HELLLL NOOOOO");
+            if (room == -1) { //not in room
+                //System.out.println("OH HELLLL NOOOOO");
                 return;
             }
             e.setMobLevel(e.getMobLevel() * room);
-            System.out.println("OH HELLLL YESSSS" + e.getMobLevel() + " :" + room);
+            //System.out.println("OH HELLLL YESSSS" + e.getMobLevel() + " :" + room);
         }
-        System.out.println(e.getSpawnReason().name());
+        //System.out.println(e.getSpawnReason().name());
     }
     @EventHandler
     public void onPlayerHeal(EntityRegainHealthEvent e) {
         if (e.getEntity() instanceof Player) {
             Player p = (Player) e.getEntity();
-            if (getCurrentRoom(p) > 0)
-                System.out.printf("CANCEL HEALING %s\n", p.getName());
+            if (getCurrentRoom(p) > 0 && e.getRegainReason().equals(EntityRegainHealthEvent.RegainReason.CUSTOM))
                 e.setCancelled(true);
+                //System.out.printf("CANCEL HEALING %s\n", p.getName() + e.getRegainReason() + "!" + getCurrentRoom(p));
+                //new Exception("Stack Trace").printStackTrace();
         }
     }
 
@@ -157,9 +157,15 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
     public static VerDungeonAddon getInstance() {
         return instance;
     }
-    public List<BuffOption> getAllBuffOptions() {
+    public List<BuffOption> getAllBuffOptions(Player p) {
+        ArrayList<BuffOption> available = new ArrayList<>();
         if (!result.isEmpty()) {
-            return result;
+            result.forEach(s -> {
+                if (s.getMin() < getCurrentRoom(p) && s.getMax() > getCurrentRoom(p)) {
+                    available.add(s);
+                }
+            });
+            return available;
         }
         File file = new File(getDataFolder(), "buffs.yml");
         if (!file.exists()) {
@@ -182,12 +188,17 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
             double value = config.getDouble(key + ".value", 0.0);
             List<String> loreList = config.getStringList(key + ".lore");
             String[] lore = loreList.toArray(new String[0]);
-            result.add(new BuffOption(itemStack, name, stats, rarity, value, tier, lore));
+            int min = config.getInt(key + ".min", 0);
+            int max = config.getInt(key + ".max", 100);
+            result.add(new BuffOption(itemStack, name, stats, rarity, value, tier, min, max, lore));
         });
         result.forEach(s -> {
+            if (s.getMin() < getCurrentRoom(p) && s.getMax() > getCurrentRoom(p)) {
+                available.add(s);
+            }
             System.out.println("Loaded " + s.toString());
         });
-        return result;
+        return available;
     }
     public BuffMenu getCurrentMenu(Player p) {
         return currentMenu.get(p.getUniqueId());

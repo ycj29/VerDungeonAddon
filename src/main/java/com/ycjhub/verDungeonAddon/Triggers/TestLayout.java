@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class TestLayout extends LayoutBranching {
-    private final int targetSize = 20;
+    private final int targetSize = 30;
 
     public TestLayout(DungeonProcedural dungeon, YamlConfiguration config) {
         super(dungeon, config);

@@ -25,11 +25,13 @@ public class BuffOption {
     private String[] lore;
     private double value;
     private int tier;
+    private int min;
+    private int max;
 
     public BuffOption(ItemStack itemStack, String name, String... lore) {
-        this(itemStack, name, "attack_damage","COMMON", 10.0, 0, lore);
+        this(itemStack, name, "attack_damage","COMMON", 10.0, 0, 0, 100, lore);
     }
-    public BuffOption(ItemStack i, String n, String s, String r, double v, int t, String... l) {
+    public BuffOption(ItemStack i, String n, String s, String r, double v, int t, int min, int max, String... l) {
         item = i;
         name = n;
         rarity = r;
@@ -53,6 +55,12 @@ public class BuffOption {
 
     public String getName() {
         return name;
+    }
+    public int getMin() {
+        return min;
+    }
+    public int getMax() {
+        return max;
     }
     public String getRarity() {
         return rarity;
