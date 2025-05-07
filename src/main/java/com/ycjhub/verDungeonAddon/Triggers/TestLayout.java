@@ -1,7 +1,7 @@
 package com.ycjhub.verDungeonAddon.Triggers;
 
-import com.ycjhub.verDungeonAddon.VerDungeonAddon;
 import net.playavalon.mythicdungeons.MythicDungeons;
+import net.playavalon.mythicdungeons.api.generation.layout.Layout;
 import net.playavalon.mythicdungeons.api.generation.layout.LayoutBranching;
 import net.playavalon.mythicdungeons.api.generation.rooms.Connector;
 import net.playavalon.mythicdungeons.api.generation.rooms.DungeonRoomContainer;
@@ -14,18 +14,18 @@ import net.playavalon.mythicdungeons.utility.helpers.MathUtils;
 import net.playavalon.mythicdungeons.utility.helpers.Util;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class TestLayout extends LayoutBranching {
-    private final int targetSize = 30;
+    private final int targetSize = 100;
 
     public TestLayout(DungeonProcedural dungeon, YamlConfiguration config) {
         super(dungeon, config);
+        System.out.println(config.get("General.MaxInstances"));
     }
-    private Connector bannedConnector;
 
     @Override
     protected boolean selectFirstRoom() {
@@ -246,5 +246,123 @@ public class TestLayout extends LayoutBranching {
         double dy = a.getY() - b.getY();
         double dz = a.getZ() - b.getZ();
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    @Override
+    protected Layout.GenerationResult generateTrunk() {
+        if (!this.selectFirstRoom()) {
+            return GenerationResult.NO_START_ROOM;
+        } else {
+            this.generationCheckpoint = this.first;
+            this.queuedRoomCount = this.roomCount;
+            this.queuedCountsByRoom = new HashMap(this.countsByRoom);
+            this.queuedRoomAreas = new ArrayList(this.roomAreas);
+            this.queuedRoomAnchors = new HashMap(this.roomAnchors);
+            int segmentTries = 0;
+
+            while(segmentTries <= 50) {
+                ++segmentTries;
+                InstanceRoom prevCheckpoint = this.generationCheckpoint;
+                List<Connector> usedCheckConnectors = new ArrayList(this.generationCheckpoint.getUsedConnectors());
+                int savedRoomCount = this.queuedRoomCount;
+                List<BoundingBox> savedRoomAreas = new ArrayList(this.queuedRoomAreas);
+                Map<DungeonRoomContainer, Integer> savedCountsByRoom = new HashMap(this.queuedCountsByRoom);
+                Map<SimpleLocation, InstanceRoom> savedRoomAnchors = new HashMap(this.queuedRoomAnchors);
+                List<InstanceRoom> savedRoomsToAdd = new ArrayList(this.roomsToAdd);
+                Layout.GenerationResult result = this.processQueue(targetSize);
+                if (this.DEBUG && !result.isPassed()) {
+                    MythicDungeons.inst().getLogger().warning(Util.colorize("Segment error: " + result.getMsg()));
+                }
+
+                if (this.queuedRoomCount >= this.getMinBranchRooms()) {
+                    break;
+                }
+
+                if (this.generationCheckpoint == null) {
+                    this.generationCheckpoint = prevCheckpoint;
+                    if (this.generationCheckpoint != null) {
+                        this.generationCheckpoint.setUsedConnectors(usedCheckConnectors);
+                        this.queue.add(this.generationCheckpoint);
+                    }
+
+                    this.queuedRoomCount = savedRoomCount;
+                    this.queuedRoomAreas = savedRoomAreas;
+                    this.queuedCountsByRoom = savedCountsByRoom;
+                    this.queuedRoomAnchors = savedRoomAnchors;
+                    this.roomsToAdd = savedRoomsToAdd;
+                } else {
+                    this.queue.add(this.generationCheckpoint);
+                    if (this.DEBUG) {
+                        MythicDungeons.inst().getLogger().info(Util.colorize("&eGenerating trunk... (" + this.queuedRoomCount + " / " + this.getMinBranchRooms() + " rooms)"));
+                    }
+
+                    segmentTries = 0;
+                }
+            }
+
+            if (this.strictRooms && this.queuedRoomCount < this.getMinBranchRooms()) {
+                if (this.DEBUG) {
+                    MythicDungeons.inst().getLogger().warning(Util.colorize("&cFailed to generate trunk :: Didn't match required size. (" + this.queuedRoomCount + " / " + this.getMinBranchRooms() + ")"));
+                }
+
+                return GenerationResult.BAD_LAYOUT;
+            } else {
+                this.generationCheckpoint = null;
+
+                for(InstanceRoom room : this.roomsToAdd) {
+                    this.addRoom(room);
+                }
+
+                return GenerationResult.SUCCESS;
+            }
+        }
+    }
+
+    @Override
+    protected Layout.GenerationResult generateBranch(InstanceRoom startRoom) {
+        this.queue.add(startRoom);
+        this.roomsToAdd = new ArrayList();
+        this.queuedCountsByRoom = new HashMap(this.countsByRoom);
+        this.queuedRoomAreas = new ArrayList();
+        this.queuedRoomAnchors = new HashMap();
+        int segmentTries = 0;
+
+        while(segmentTries <= 50) {
+            ++segmentTries;
+            if (this.generationCheckpoint == null) {
+                this.generationCheckpoint = startRoom;
+            }
+
+            InstanceRoom prevCheckpoint = this.generationCheckpoint;
+            List<Connector> usedCheckConnectors = new ArrayList(this.generationCheckpoint.getUsedConnectors());
+            int savedRoomCount = this.queuedRoomCount;
+            List<BoundingBox> savedRoomAreas = new ArrayList(this.queuedRoomAreas);
+            Map<DungeonRoomContainer, Integer> savedCountsByRoom = new HashMap(this.queuedCountsByRoom);
+            Map<SimpleLocation, InstanceRoom> savedRoomAnchors = new HashMap(this.queuedRoomAnchors);
+            List<InstanceRoom> savedRoomsToAdd = new ArrayList(this.roomsToAdd);
+            Layout.GenerationResult result = this.processQueue(targetSize);
+            if (this.DEBUG && !result.isPassed()) {
+                MythicDungeons.inst().getLogger().warning(Util.colorize("Segment error: " + result.getMsg()));
+            }
+
+            if (this.queuedRoomCount >= this.getMinBranchRooms()) {
+                return GenerationResult.SUCCESS;
+            }
+
+            if (this.generationCheckpoint == null) {
+                this.generationCheckpoint = prevCheckpoint;
+                this.generationCheckpoint.setUsedConnectors(usedCheckConnectors);
+                this.queuedRoomCount = savedRoomCount;
+                this.queuedRoomAreas = savedRoomAreas;
+                this.queuedCountsByRoom = savedCountsByRoom;
+                this.queuedRoomAnchors = savedRoomAnchors;
+                this.roomsToAdd = savedRoomsToAdd;
+                this.queue.add(this.generationCheckpoint);
+            } else {
+                this.queue.add(this.generationCheckpoint);
+                segmentTries = 0;
+            }
+        }
+
+        return GenerationResult.BAD_LAYOUT;
     }
 }

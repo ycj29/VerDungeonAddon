@@ -43,7 +43,10 @@ public class BuffMenu implements Listener {
             return;
         Inventory inv = Bukkit.createInventory(pl, 45, "升級！");
 
-        //
+        //test
+        if (pl.isOp()) {
+            pl.sendMessage(VerDungeonAddon.sortRoomsAche.get(pl).size() + "/" + VerDungeonAddon.getInstance().getCurrentRoom(pl));
+        }
 
         ItemStack item = option1.getItem();
         ItemMeta meta = item.getItemMeta();

@@ -5,6 +5,8 @@ buff1:
   tier: 1
   rarity: "&7普通"
   value: 5.0
+  min: 0
+  max: 30
   lore:
     - "增加攻擊力"
     - "很厲害的 buff！"
@@ -16,6 +18,8 @@ buff2:
   tier: 2
   rarity: "&9稀有"
   value: 10.0
+  min: 0
+  max: 30
   lore:
     - "增加最大生命值"
 
@@ -36,6 +40,8 @@ buff4:
   tier: 2
   rarity: "&9稀有"
   value: 15.0
+  min: 0
+  max: 30
   lore:
     - "幸運值 +15"
     - "增加稀有掉落機率"
@@ -47,6 +53,8 @@ buff5:
   tier: 2
   rarity: "&5史詩"
   value: 0.1
+  min: 0
+  max: 30
   lore:
     - "擊退抗性 +10%"
 
@@ -57,6 +65,8 @@ buff6:
   tier: 2
   rarity: "&9稀有"
   value: 30.0
+  min: 0
+  max: 30
   lore:
     - "Stellium 上限 +30"
 
@@ -67,6 +77,8 @@ buff7:
   tier: 3
   rarity: "&5史詩"
   value: 20.0
+  min: 0
+  max: 30
   lore:
     - "技能傷害 +20%"
 
@@ -77,6 +89,8 @@ buff8:
   tier: 3
   rarity: "&6傳說"
   value: 4.0
+  min: 0
+  max: 30
   lore:
     - "護甲韌性 +4"
 
@@ -87,6 +101,8 @@ buff9:
   tier: 2
   rarity: "&9稀有"
   value: 0.33
+  min: 0
+  max: 30
   lore:
     - "水下呼吸消耗機率 -33%"
 
@@ -97,6 +113,8 @@ buff10:
   tier: 3
   rarity: "&6傳說"
   value: 10.0
+  min: 0
+  max: 30
   lore:
     - "生命回復 +10/秒"
     - "恢復能力大幅提升"
@@ -108,6 +126,8 @@ buff11:
   tier: 2
   rarity: "&5史詩"
   value: 10.0
+  min: 0
+  max: 30
   lore:
     - "技能冷卻縮減 +10%"
 
@@ -118,6 +138,8 @@ buff12:
   tier: 1
   rarity: "&7普通"
   value: 0.2
+  min: 0
+  max: 30
   lore:
     - "跳躍高度 +20%"
 
@@ -128,6 +150,8 @@ buff13:
   tier: 3
   rarity: "&6傳說"
   value: 30.0
+  min: 0
+  max: 30
   lore:
     - "對不死生物傷害 +30%"
 
@@ -138,6 +162,8 @@ buff14:
   tier: 2
   rarity: "&9稀有"
   value: 15.0
+  min: 0
+  max: 30
   lore:
     - "投射物傷害 +15%"
 
@@ -148,5 +174,7 @@ buff15:
   tier: 1
   rarity: "&7普通"
   value: 5.0
+  min: 0
+  max: 30
   lore:
     - "無傷墜落高度 +5 格"

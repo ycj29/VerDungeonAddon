@@ -1,18 +1,26 @@
 package com.ycjhub.verDungeonAddon;
 
+import com.ycjhub.verDungeonAddon.Triggers.RoomClearedTrigger;
 import net.playavalon.mythicdungeons.api.events.dungeon.DungeonEndEvent;
 import net.playavalon.mythicdungeons.api.events.dungeon.DungeonStartEvent;
+import net.playavalon.mythicdungeons.api.events.dungeon.rooms.RoomDoorChangeEvent;
 import net.playavalon.mythicdungeons.api.generation.rooms.InstanceRoom;
+import net.playavalon.mythicdungeons.player.MythicPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.List;
 
@@ -22,6 +30,7 @@ public class BuffMenuListener implements Listener {
     public BuffMenuListener(VerDungeonAddon plugin) {
         this.plugin = plugin;
     }
+
 
 
     @EventHandler
@@ -84,6 +93,29 @@ public class BuffMenuListener implements Listener {
                 Bukkit.getScheduler().runTaskLater(VerDungeonAddon.getInstance(), () -> buffMenu.open(), 1L);
                 p.sendMessage(ChatColor.RED + "你必須選擇一個升級才能離開！");
             }
+        }
+    }
+    @EventHandler
+    public void onOpen(InventoryOpenEvent e) {
+        if (plugin.getCurrentMenu((Player) e.getPlayer()) == null)
+            return;
+        if (e.getView().getTitle().equals("升級！")) {
+            Player p = (Player) e.getPlayer();
+            p.sendMessage(plugin.getCurrentRoom(p) + " / " + plugin.sortRoomsAche.get(p).size());
+            if (plugin.getCurrentRoom(p) == plugin.sortRoomsAche.get(p).size()) {
+                p.sendMessage("Finished!!");
+            }
+        }
+    }
+    @EventHandler
+    public void roomOpen(RoomDoorChangeEvent e) {
+        if (e.getRoom().isEndRoom()) {
+            e.getDungeon().getInstances().getFirst().getInstanceWorld().getPlayers().forEach(p -> {
+                MythicPlayer mp = new MythicPlayer(p);
+                p.performCommand("leave");
+                p.sendTitle("恭喜完成第一章", "快去挑戰下一章", 10, 10, 10);
+                mp.addReward(new ItemStack(Material.DIAMOND));
+            });
         }
     }
     @EventHandler

@@ -11,6 +11,7 @@ import net.playavalon.mythicdungeons.api.events.dungeon.DungeonEndEvent;
 import net.playavalon.mythicdungeons.api.events.dungeon.DungeonStartEvent;
 import net.playavalon.mythicdungeons.api.generation.rooms.InstanceRoom;
 import net.playavalon.mythicdungeons.dungeons.instancetypes.play.InstanceProcedural;
+import net.playavalon.mythicdungeons.player.MythicPlayer;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -90,7 +91,7 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         }
         //System.out.println(e.getSpawnReason().name());
     }
-    @EventHandler
+/*    @EventHandler
     public void onPlayerHeal(EntityRegainHealthEvent e) {
         if (e.getEntity() instanceof Player) {
             Player p = (Player) e.getEntity();
@@ -98,8 +99,9 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
                 e.setCancelled(true);
                 //System.out.printf("CANCEL HEALING %s\n", p.getName() + e.getRegainReason() + "!" + getCurrentRoom(p));
                 //new Exception("Stack Trace").printStackTrace();
+            //new MythicPlayer(p).addReward(new ItemStack(Material.DIAMOND_SWORD));
         }
-    }
+    }*/
 
 
 
@@ -161,8 +163,10 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
         ArrayList<BuffOption> available = new ArrayList<>();
         if (!result.isEmpty()) {
             result.forEach(s -> {
-                if (s.getMin() < getCurrentRoom(p) && s.getMax() > getCurrentRoom(p)) {
+                System.out.println(s.getName() + "ACHE!");
+                if (s.getMin() <= getCurrentRoom(p) && s.getMax() >= getCurrentRoom(p)) {
                     available.add(s);
+                    System.out.println(s.getName() + "ACHE ADDED!");
                 }
             });
             return available;
@@ -193,10 +197,12 @@ public final class VerDungeonAddon extends JavaPlugin implements Listener {
             result.add(new BuffOption(itemStack, name, stats, rarity, value, tier, min, max, lore));
         });
         result.forEach(s -> {
-            if (s.getMin() < getCurrentRoom(p) && s.getMax() > getCurrentRoom(p)) {
+            System.out.println(s.getName());
+            if (s.getMin() <= getCurrentRoom(p) && s.getMax() >= getCurrentRoom(p)) {
                 available.add(s);
+                System.out.println(s.getName() + "ADDED!");
             }
-            System.out.println("Loaded " + s.toString());
+            System.out.println("Loaded " + s.getName() + s.getMin() + "/" + getCurrentRoom(p) + "/" + s.getMax());
         });
         return available;
     }

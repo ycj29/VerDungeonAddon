@@ -39,6 +39,8 @@ public class BuffOption {
         stat = s.toUpperCase();
         value = v;
         tier = t;
+        this.min = min;
+        this.max = max;
     }
 
     public void Apply(Player pl) {
