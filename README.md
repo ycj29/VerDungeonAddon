@@ -1,2 +1,2 @@
-playable but but not recommanded for productivity.
+playable but not recommended for productivity
 how to setup? tbd...
